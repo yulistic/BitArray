@@ -506,6 +506,50 @@ void bit_array_dealloc(BIT_ARRAY* bitarr)
   memset(bitarr, 0, sizeof(BIT_ARRAY));
 }
 
+// For shared memory support.
+
+/**
+ * @brief Get the required shm size.
+ * 
+ * @param nbits 
+ * @return size_t 
+ */
+size_t get_required_shm_size(bit_index_t nbits)
+{
+  word_addr_t num_of_words;
+  word_addr_t capacity_in_words;
+
+  num_of_words = roundup_bits2words64(nbits);
+  capacity_in_words = MAX(8, roundup2pow(num_of_words));
+
+  // BIT_ARRAY + words
+  return sizeof(BIT_ARRAY) + capacity_in_words * sizeof(word_t);
+}
+
+
+// If cannot allocate memory, set errno to ENOMEM, return NULL
+/**
+ * @brief Set bitarr. This function is used when memory is allocated by caller.
+ * 
+ * @param bitarr The allocated bitarr.
+ * @param nbits 
+ * @param words_p The address of allocated memory for bitmap.
+ * @return BIT_ARRAY* 
+ */
+BIT_ARRAY* bit_array_init_shm(BIT_ARRAY* bitarr, bit_index_t nbits, word_t* words_p)
+{
+  bitarr->num_of_bits = nbits;
+  bitarr->num_of_words = roundup_bits2words64(nbits);
+  bitarr->capacity_in_words = MAX(8, roundup2pow(bitarr->num_of_words));
+  bitarr->words = words_p;
+  if(bitarr->words == NULL) {
+    errno = ENOMEM;
+    return NULL;
+  }
+  return bitarr;
+}
+
+
 // If cannot allocate memory, set errno to ENOMEM, return NULL
 BIT_ARRAY* bit_array_create(bit_index_t nbits)
 {
