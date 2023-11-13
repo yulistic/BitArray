@@ -523,7 +523,7 @@ size_t get_required_shm_size(bit_index_t nbits)
   capacity_in_words = MAX(8, roundup2pow(num_of_words));
 
   // BIT_ARRAY + words
-  return sizeof(BIT_ARRAY) + capacity_in_words * sizeof(word_t);
+  return capacity_in_words * sizeof(word_t);
 }
 
 
